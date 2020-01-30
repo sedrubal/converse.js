@@ -21,7 +21,9 @@ import tpl_select_option from "../templates/select_option.html";
 import tpl_video from "../templates/video.js";
 import u from "../headless/utils/core";
 
-const URL_REGEX = /\b(https?\:\/\/|www\.|https?:\/\/www\.)[^\s<>]{2,200}\b\/?/g;
+const URL_REGEX = /(\b(?:https?\:\/\/|www\.|https?:\/\/www\.)[^\s<>]{2,200}\b\/?)/;
+
+// const URL_REGEX = /\b(?:([a-z][a-z0-9.+-]*:\/\/)|xmpp:|mailto:|www\.)/gi
 
 function getAutoCompleteProperty (name, options) {
     return {
@@ -178,59 +180,6 @@ function loadImage (url) {
 }
 
 
-async function renderImage (img_url, link_url, el, callback) {
-    if (u.isImageURL(img_url)) {
-        let img;
-        try {
-            img = await loadImage(img_url);
-        } catch (e) {
-            log.error(e);
-            return callback();
-        }
-        sizzle(`a[href="${link_url}"]`, el).forEach(a => {
-            a.innerHTML = "";
-            u.addClass('chat-image', img);
-            u.addClass('img-thumbnail', img);
-            a.insertAdjacentElement('afterBegin', img);
-        });
-    }
-    callback();
-}
-
-
-/**
- * Returns a Promise which resolves once all images have been loaded.
- * @method u#renderImageURLs
- * @param { _converse }
- * @param { HTMLElement }
- * @returns { Promise }
- */
-u.renderImageURLs = function (_converse, el) {
-    if (!_converse.show_images_inline) {
-        return Promise.resolve();
-    }
-    const list = el.textContent.match(URL_REGEX) || [];
-    return Promise.all(
-        list.map(url =>
-            new Promise(resolve => {
-                let image_url = getURI(url);
-                if (['imgur.com', 'pbs.twimg.com'].includes(image_url.hostname()) && !u.isImageURL(url)) {
-                    const format = (image_url.hostname() === 'pbs.twimg.com') ? image_url.search(true).format : 'png';
-                    image_url = image_url.removeSearch(/.*/).toString() + `.${format}`;
-                    renderImage(image_url, url, el, resolve);
-                } else {
-                    renderImage(url, url, el, resolve);
-                }
-            })
-        )
-    )
-};
-
-
-u.renderNewLines = function (text) {
-    return text.replace(/\n\n+/g, '<br/><br/>').replace(/\n/g, '<br/>');
-};
-
 u.calculateElementHeight = function (el) {
     /* Return the height of the passed in DOM element,
      * based on the heights of its children.
@@ -363,6 +312,11 @@ u.escapeHTML = function (string) {
 };
 
 
+u.isMeCommand = function (text) {
+    return text && text.startsWith('/me ');
+}
+
+
 u.addMentionsMarkup = function (text, references, chatbox) {
     if (chatbox.get('message_type') !== 'groupchat') {
         return text;
@@ -383,6 +337,28 @@ u.addMentionsMarkup = function (text, references, chatbox) {
 };
 
 
+u.convertToImageTag = async function (url) {
+    const uri = getURI(url);
+    const img_url_without_ext = ['imgur.com', 'pbs.twimg.com'].includes(uri.hostname());
+    let src;
+    if (u.isImageURL(url) || img_url_without_ext) {
+        if (img_url_without_ext) {
+            const format = (uri.hostname() === 'pbs.twimg.com') ? uri.search(true).format : 'png';
+            src = uri.removeSearch(/.*/).toString() + `.${format}`;
+        } else {
+            src = url;
+        }
+        try {
+            await loadImage(src);
+        } catch (e) {
+            log.error(e);
+            return u.convertToHyperlink(url);
+        }
+        return tpl_image({url, src});
+    }
+}
+
+
 u.convertToHyperlink = function (url) {
     const uri = getURI(url);
     if (uri === null) {
@@ -400,11 +376,20 @@ u.convertToHyperlink = function (url) {
 }
 
 
+u.createElementFromURL = function (text) {
+    if (!text || !URL_REGEX.test(text)) {
+        return text;
+    } else if (u.isImageURL(text)) {
+        return u.convertToImageTag(text);
+    } else {
+        return u.convertToHyperlink(text);
+    }
+}
+
+
 u.addHyperlinks = function (text) {
-    const parse_options = {
-        'start': /\b(?:([a-z][a-z0-9.+-]*:\/\/)|xmpp:|mailto:|www\.)/gi
-    };
-    return URI.withinString(text, url => u.convertToHyperlink(url), parse_options);
+    const list = text.split(URL_REGEX) || [text];
+    return Promise.all(list.map(i => u.createElementFromURL(i)));
 };
 
 

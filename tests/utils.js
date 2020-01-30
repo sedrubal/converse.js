@@ -424,7 +424,7 @@
     }
 
     utils.sendMessage = function (view, message) {
-        const promise = new Promise(resolve => view.once('messageInserted', resolve));
+        const promise = new Promise(resolve => view.model.messages.once('rendered', resolve));
         view.el.querySelector('.chat-textarea').value = message;
         view.onKeyDown({
             target: view.el.querySelector('textarea.chat-textarea'),

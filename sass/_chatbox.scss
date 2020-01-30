@@ -229,7 +229,22 @@
                 margin: 0.5em 0;
                 width: 100%
             }
+
+            .empty-history-feedback {
+                position: relative;
+                height: 100%;
+                font-size: var(--font-size-small);
+                color: var(--subdued-color);
+                span {
+                    width: 100%;
+                    text-align: center;
+                    position: absolute;
+                    margin-top: 50%;
+                }
+            }
         }
+
+
         .chat-content-sendbutton {
             height: calc(100% - (var(--chat-textarea-height) + var(--send-button-height) + 2 * var(--send-button-margin)));
         }

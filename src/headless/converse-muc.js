@@ -1867,6 +1867,7 @@ converse.plugins.add('converse-muc', {
 
                 if (u.shouldCreateGroupchatMessage(attrs)) {
                     const msg = this.handleCorrection(attrs) || await this.createMessage(attrs);
+                    this.createDayIndicator(msg);
                     this.incrementUnreadMsgCounter(msg);
                 }
                 _converse.api.trigger('message', {'stanza': original_stanza, 'chatbox': this});

@@ -252,7 +252,7 @@
                             'name': "my-juliet.jpg"
                         };
                         view.model.sendFiles([file]);
-                        await new Promise(resolve => view.once('messageInserted', resolve));
+                        await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                         await u.waitUntil(() => _.filter(IQ_stanzas, iq => iq.querySelector('iq[to="upload.montague.tld"] request')).length);
                         const iq = IQ_stanzas.pop();
@@ -357,7 +357,7 @@
                             'name': "my-juliet.jpg"
                         };
                         view.model.sendFiles([file]);
-                        await new Promise(resolve => view.once('messageInserted', resolve));
+                        await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                         await u.waitUntil(() => _.filter(IQ_stanzas, iq => iq.querySelector('iq[to="upload.montague.tld"] request')).length);
                         const iq = IQ_stanzas.pop();
@@ -580,7 +580,7 @@
                         'name': "my-juliet.jpg"
                     };
                     view.model.sendFiles([file]);
-                    await new Promise(resolve => view.once('messageInserted', resolve));
+                    await new Promise(resolve => view.model.messages.once('rendered', resolve));
                     await u.waitUntil(() => _.filter(IQ_stanzas, iq => iq.querySelector('iq[to="upload.montague.tld"] request')).length)
                     const iq = IQ_stanzas.pop();
                     expect(Strophe.serialize(iq)).toBe(
