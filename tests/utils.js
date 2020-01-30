@@ -312,12 +312,6 @@
         await view.model.messages.fetched;
     };
 
-    utils.clearChatBoxMessages = function (converse, jid) {
-        const view = converse.chatboxviews.get(jid);
-        view.el.querySelector('.chat-content').innerHTML = '';
-        return view.model.messages.clearStore();
-    };
-
     utils.createContact = async function (_converse, name, ask, requesting, subscription) {
         const jid = name.replace(/ /g,'.').toLowerCase() + '@montague.lit';
         if (_converse.roster.get(jid)) {
@@ -424,7 +418,7 @@
     }
 
     utils.sendMessage = function (view, message) {
-        const promise = new Promise(resolve => view.once('messageInserted', resolve));
+        const promise = new Promise(resolve => view.model.messages.once('rendered', resolve));
         view.el.querySelector('.chat-textarea').value = message;
         view.onKeyDown({
             target: view.el.querySelector('textarea.chat-textarea'),

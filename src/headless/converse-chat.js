@@ -174,14 +174,6 @@ converse.plugins.add('converse-chat', {
                 return this.get('message');
             },
 
-            isMeCommand () {
-                const text = this.getMessageText();
-                if (!text) {
-                    return false;
-                }
-                return text.startsWith('/me ');
-            },
-
             sendSlotRequestStanza () {
                 /* Send out an IQ stanza to request a file upload slot.
                  *

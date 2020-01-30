@@ -35,7 +35,8 @@ class ClickableImage extends LitElement {
 
     static get properties () {
         return {
-            url: { type: String }
+            url: { type: String },
+            src: { type: String },
         }
     }
 
@@ -46,8 +47,8 @@ class ClickableImage extends LitElement {
 
     render () {
         return html`
-            <a href="${this.url}" target="_blank" rel="noopener" @click=${ev => this.showMessageVersionsModal(ev, o)}>
-                <img class="chat-image img-thumbnail" src="${this.url}"/>
+            <a href="${this.url}" target="_blank" rel="noopener" @click=${ev => this.showMessageVersionsModal(ev, this.url)}>
+                <img class="chat-image img-thumbnail" src="${this.src}"/>
             </a>
         `;
     }

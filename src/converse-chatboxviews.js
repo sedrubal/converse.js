@@ -60,6 +60,7 @@ converse.plugins.add('converse-chatboxviews', {
             'theme': 'default'
         });
 
+
         _converse.ViewWithAvatar = View.extend(AvatarMixin);
 
 
@@ -134,9 +135,7 @@ converse.plugins.add('converse-chatboxviews', {
 
         /************************ BEGIN Event Handlers ************************/
         _converse.api.listen.on('chatBoxesInitialized', () => {
-            _converse.chatboxviews = new _converse.ChatBoxViews({
-                'model': _converse.chatboxes
-            });
+            _converse.chatboxviews = new _converse.ChatBoxViews({'model': _converse.chatboxes});
             /**
              * Triggered once the _converse.ChatBoxViews view-colleciton has been initialized
              * @event _converse#chatBoxViewsInitialized
