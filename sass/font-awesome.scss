@@ -65,29 +65,36 @@
 @import "@fortawesome/fontawesome-free/scss/screen-reader";
 
 #conversejs, .converse-website {
-  /* Apparent font-awesome bug? The circle has some kind of bottom margin */
-  .far {
-    font-family: 'ConverseFontAwesomeRegular' !important;
-    font-weight: 400;
-  }
-  .fa,
-  .fas {
-    font-family: 'ConverseFontAwesomeSolid' !important;
-    font-weight: 900;
-  }
 
-  .fab {
-    font-family: 'ConverseFontAwesomeBrands';
-  }
+    /* Apparent font-awesome bug? The circle has some kind of bottom margin */
+    .far:not(fa-icon) {
+      font-family: 'ConverseFontAwesomeRegular' !important;
+      font-weight: 400;
+    }
+    .fa:not(fa-icon),
+    .fas:not(fa-icon) {
+      font-family: 'ConverseFontAwesomeSolid' !important;
+      font-weight: 900;
+    }
 
-  .fa, .far, .fas, .fab {
-      display: inline-block;
-      font-size: inherit;
-      text-rendering: auto;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-  }
-  .fa-info-circle {
-      height: 1em;
-  }
+    .fab:not(fa-icon) {
+      font-family: 'ConverseFontAwesomeBrands';
+    }
+
+    .fa:not(fa-icon), .far:not(fa-icon), .fas:not(fa-icon), .fab {
+        display: inline-block;
+        font-size: inherit;
+        text-rendering: auto;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    .fa-info-circle:not(fa-icon) {
+        height: 1em;
+    }
+
+    fa-icon {
+        &::before {
+          content: '' !important;
+        }
+    }
 }

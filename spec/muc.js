@@ -517,12 +517,14 @@
                     }).c('body').t(message).tree();
 
                 await view.model.queueMessage(msg);
-
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
+                expect(view.content.querySelectorAll('.chat-msg').length).toBe(1);
                 spyOn(view.model, 'clearMessages').and.callThrough();
                 await view.model.close();
                 await u.waitUntil(() => view.model.clearMessages.calls.count());
                 expect(view.model.messages.length).toBe(0);
-                expect(view.content.innerHTML).toBe('');
+                // The view has been removed from the DOM
+                expect(view.el.parentElement).toBe(null);
                 done()
             }));
 
@@ -548,10 +550,10 @@
                     }).c('body').t(message).tree();
 
                 await view.model.queueMessage(msg);
-                await u.waitUntil(()  => view.el.querySelector('.chat-msg__text a'));
-                view.el.querySelector('.chat-msg__text a').click();
+                await u.waitUntil(()  => view.content.querySelector('.chat-msg__text a'));
+                view.content.querySelector('.chat-msg__text a').click();
                 await u.waitUntil(() => _converse.chatboxes.length === 3)
-                expect(_.includes(_converse.chatboxes.pluck('id'), 'coven@chat.shakespeare.lit')).toBe(true);
+                expect(_converse.chatboxes.pluck('id').includes('coven@chat.shakespeare.lit')).toBe(true);
                 done()
             }));
 
@@ -677,7 +679,7 @@
                     'type': 'groupchat'
                 }).c('body').t('hello world').tree();
                 _converse.connection._dataRecv(test_utils.createRequest(msg));
-                await new Promise(resolve => view.once('messageInserted', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                 // Add another entrant, otherwise the above message will be
                 // collapsed if "newguy" leaves immediately again
@@ -1268,7 +1270,7 @@
                             <delay xmlns="urn:xmpp:delay" stamp="${(new Date()).toISOString()}" from="some1@montague.lit"/>
                      </message>`);
                 _converse.connection._dataRecv(test_utils.createRequest(stanza));
-                await new Promise(resolve => view.once('messageInserted', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                 presence = $pres({
                         to: 'romeo@montague.lit/_converse.js-29092160',
@@ -1303,7 +1305,7 @@
                            <delay xmlns="urn:xmpp:delay" stamp="${(new Date()).toISOString()}" from="some1@montague.lit"/>"+
                     </message>`);
                 _converse.connection._dataRecv(test_utils.createRequest(stanza));
-                await new Promise(resolve => view.once('messageInserted', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                 jasmine.clock().tick(ONE_DAY_LATER);
                 // Test a user leaving a groupchat
@@ -2118,11 +2120,10 @@
                     preventDefault: function preventDefault () {},
                     keyCode: 13
                 });
-                await new Promise(resolve => view.once('messageInserted', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                 expect(_converse.api.trigger).toHaveBeenCalledWith('messageSend', jasmine.any(_converse.Message));
-                const chat_content = view.el.querySelector('.chat-content');
-                expect(chat_content.querySelectorAll('.chat-msg').length).toBe(1);
+                expect(view.content.querySelectorAll('.chat-msg').length).toBe(1);
 
                 // Let's check that if we receive the same message again, it's
                 // not shown.
@@ -2138,8 +2139,9 @@
                         <origin-id xmlns="urn:xmpp:sid:0" id="${view.model.messages.at(0).get('origin_id')}"/>
                     </message>`);
                 await view.model.queueMessage(stanza);
-                expect(chat_content.querySelectorAll('.chat-msg').length).toBe(1);
-                expect(sizzle('.chat-msg__text:last').pop().textContent.trim()).toBe(text);
+                expect(view.content.querySelectorAll('.chat-msg').length).toBe(1);
+                const text_el = view.content.querySelector('.chat-msg__text:last-child');
+                expect(text_el.textContent.trim()).toBe(text);
                 expect(view.model.messages.length).toBe(1);
                 // We don't emit an event if it's our own message
                 expect(_converse.api.trigger.calls.count(), 1);
@@ -2215,7 +2217,8 @@
                          <body>This is a message</body>
                      </message>`);
                 _converse.connection._dataRecv(test_utils.createRequest(stanza));
-                await new Promise(resolve => view.once('messageInserted', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
+                expect(sizzle('.chat-topic', view.el).length).toBe(1);
                 expect(sizzle('.chat-msg__subject', view.el).length).toBe(1);
                 expect(sizzle('.chat-msg__subject', view.el).pop().textContent.trim()).toBe('This is a message subject');
                 expect(sizzle('.chat-msg__text').length).toBe(1);
@@ -5175,7 +5178,7 @@
                         type: 'groupchat'
                     }).c('body').t('hello world').tree();
                     await view.model.queueMessage(msg);
-                    await new Promise(resolve => view.once('messageInserted', resolve));
+                    await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                     const messages = view.el.querySelectorAll('.message');
                     expect(messages.length).toBe(7);
@@ -5379,20 +5382,20 @@
                 const textarea = view.el.querySelector('.chat-textarea');
                 textarea.value = 'Hello world';
                 view.onFormSubmitted(new Event('submit'));
-                await new Promise(resolve => view.once('messageInserted', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                 let stanza = u.toStanza(`
                     <message xmlns="jabber:client" type="error" to="troll@montague.lit/resource" from="trollbox@montague.lit">
                         <error type="auth"><forbidden xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"/></error>
                     </message>`);
                 _converse.connection._dataRecv(test_utils.createRequest(stanza));
-                await new Promise(resolve => view.once('messageInserted', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
                 expect(view.el.querySelector('.chat-error').textContent.trim()).toBe(
                     "Your message was not delivered because you weren't allowed to send it.");
 
                 textarea.value = 'Hello again';
                 view.onFormSubmitted(new Event('submit'));
-                await new Promise(resolve => view.once('messageInserted', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                 stanza = u.toStanza(`
                     <message xmlns="jabber:client" type="error" to="troll@montague.lit/resource" from="trollbox@montague.lit">
@@ -5402,7 +5405,7 @@
                         </error>
                     </message>`);
                 _converse.connection._dataRecv(test_utils.createRequest(stanza));
-                await new Promise(resolve => view.once('messageInserted', resolve));
+                await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
                 expect(view.el.querySelector('.message:last-child').textContent.trim()).toBe(
                     'Your message was not delivered because you weren\'t allowed to send it. '+
