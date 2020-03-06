@@ -1,3 +1,5 @@
 import { html } from "lit-html";
+import "../components/image.js";
 
-export default (o) => html`<a href="${o.url}" target="_blank" rel="noopener"><img class="chat-image img-thumbnail" src="${o.url}"/></a>`;
+
+export default (o) => html`<converse-clickable-image url="${o.url}" />`;
