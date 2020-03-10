@@ -67,43 +67,6 @@ export const renderRetractionLink = directive(o => async part => {
 });
 
 
-export const transformBodyText = directive(component => async part => {
-    const model = component.model;
-    const _converse = component._converse;
-
-    let text = xss.filterXSS(model.getMessageText());
-    /**
-     * Synchronous event which provides a hook for transforming a chat message's body text
-     * before the default transformations have been applied.
-     * @event _converse#beforeMessageBodyTransformed
-     * @param { _converse.Message } model - The model representing the message
-     * @param { string } text - The message text
-     * @example _converse.api.listen.on('beforeMessageBodyTransformed', (view, text) => { ... });
-     */
-    await _converse.api.trigger('beforeMessageBodyTransformed', model, text, {'Synchronous': true});
-    text = u.isMeCommand(text) ? text.substring(4) : text;
-    text = xss.filterXSS(text, {'whiteList': {}, 'onTag': onTagFoundDuringXSSFilter});
-    text = u.geoUriToHttp(text, _converse.geouri_replacement);
-    text = u.addMentionsMarkup(text, model.get('references'), model.collection.chatbox);
-    const list = await Promise.all(await u.addHyperlinks(text).then(list => list.map(i => isString(i) ? u.addEmoji(i) : i)));
-    /**
-     * Synchronous event which provides a hook for transforming a chat message's body text
-     * after the default transformations have been applied.
-     * @event _converse#afterMessageBodyTransformed
-     * @param { _converse.Message } model - The model representing the message
-     * @param { string } text - The message text
-     * @example _converse.api.listen.on('afterMessageBodyTransformed', (view, text) => { ... });
-     */
-    await _converse.api.trigger('afterMessageBodyTransformed', model, text, {'Synchronous': true});
-
-    const template = html`${list};`;
-    part.setValue(template);
-    part.commit();
-    model.collection && model.collection.trigger('rendered', model);
-    component.registerClickHandlers();
-});
-
-
 export const renderAvatar = directive(o => part => {
     if (o.type === 'headline' || o.is_me_message) {
         part.setValue('');
