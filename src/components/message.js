@@ -1,5 +1,6 @@
 import { LitElement, html } from 'lit-element';
-import { renderAvatar, renderRetractionLink, transformBodyText } from './../templates/directives';
+import { renderAvatar, renderRetractionLink } from './../templates/directives';
+import { renderBodyText } from './../templates/directives/body';
 import { BootstrapModal } from "../converse-modal.js";
 import { __ } from '@converse/headless/i18n';
 import dayjs from 'dayjs';
@@ -177,7 +178,7 @@ class Message extends LitElement {
         return html`
             ${ this.is_spoiler ? tpl_spoiler_hint : '' }
             ${ this.subject ? html`<div class="chat-msg__subject">${this.subject}</div>` : '' }
-            <div class="chat-msg__text ${this.is_only_emojis ? 'chat-msg__text--larger' : ''} ${this.is_spoiler ? 'spoiler collapsed' : ''}">${transformBodyText(this)}</div>
+            <div class="chat-msg__text ${this.is_only_emojis ? 'chat-msg__text--larger' : ''} ${this.is_spoiler ? 'spoiler collapsed' : ''}">${renderBodyText(this)}</div>
             ${ this.oob_url ? html`<div class="chat-msg__media">${u.getOOBURLMarkup(this._converse, this.oob_url)}</div>` : '' }
         `;
     }

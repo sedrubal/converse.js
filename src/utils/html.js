@@ -5,6 +5,7 @@
  */
 import URI from "urijs";
 import { get, isFunction } from "lodash";
+import { html } from "lit-html";
 import log from '@converse/headless/log';
 import sizzle from "sizzle";
 import tpl_audio from  "../templates/audio.js";
@@ -315,26 +316,6 @@ u.escapeHTML = function (string) {
 u.isMeCommand = function (text) {
     return text && text.startsWith('/me ');
 }
-
-
-u.addMentionsMarkup = function (text, references, chatbox) {
-    if (chatbox.get('message_type') !== 'groupchat') {
-        return text;
-    }
-    const nick = chatbox.get('nick');
-    references
-        .sort((a, b) => b.begin - a.begin)
-        .forEach(ref => {
-            const mention = text.slice(ref.begin, ref.end)
-            chatbox;
-            if (mention === nick) {
-                text = text.slice(0, ref.begin) + `<span class="mention mention--self badge badge-info">${mention}</span>` + text.slice(ref.end);
-            } else {
-                text = text.slice(0, ref.begin) + `<span class="mention">${mention}</span>` + text.slice(ref.end);
-            }
-        });
-    return text;
-};
 
 
 u.convertToImageTag = async function (url) {
