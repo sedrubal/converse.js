@@ -5,7 +5,6 @@
  */
 import URI from "urijs";
 import { get, isFunction } from "lodash";
-import { html } from "lit-html";
 import log from '@converse/headless/log';
 import sizzle from "sizzle";
 import tpl_audio from  "../templates/audio.js";

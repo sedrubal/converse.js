@@ -1,5 +1,4 @@
 import { directive, html } from "lit-html";
-import { __ } from '@converse/headless/i18n';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { isString } from "lodash";
 import converse from  "@converse/headless/converse-core";
@@ -63,8 +62,73 @@ class Markup extends String {
 }
 
 
+class MessageBodyRenderer extends String {
+
+    constructor (_converse, model) {
+        super();
+        this._converse = _converse;
+        this.text = model.getMessageText();
+        this.model = model;
+    }
+
+    async transform () {
+        /**
+         * Synchronous event which provides a hook for transforming a chat message's body text
+         * before the default transformations have been applied.
+         * @event _converse#beforeMessageBodyTransformed
+         * @param { _converse.Message } model - The model representing the message
+         * @param { string } text - The message text
+         * @example _converse.api.listen.on('beforeMessageBodyTransformed', (view, text) => { ... });
+         */
+        await this._converse.api.trigger('beforeMessageBodyTransformed', this.model, this.text, {'Synchronous': true});
+
+        let text = xss.filterXSS(this.text, {'whiteList': {}, 'onTag': onTagFoundDuringXSSFilter});
+        text = u.isMeCommand(text) ? text.substring(4) : text;
+        text = u.geoUriToHttp(text, this._converse.geouri_replacement);
+
+        function process (text) {
+            // FIXME: need to handle img emojis
+            text = u.addEmoji(text);
+            return addMentionsMarkup(text, this.model.get('references'), this.model.collection.chatbox);
+        }
+
+        this.list = await Promise.all(await u.addHyperlinks(text)
+            .then(list => list.reduce((acc, i) => isString(i) ? [...acc, ...process(i)] : [...acc, i]), [])
+        );
+
+        /**
+         * Synchronous event which provides a hook for transforming a chat message's body text
+         * after the default transformations have been applied.
+         * @event _converse#afterMessageBodyTransformed
+         * @param { _converse.Message } model - The model representing the message
+         * @param { string } text - The message text
+         * @example _converse.api.listen.on('afterMessageBodyTransformed', (view, text) => { ... });
+         */
+        await this._converse.api.trigger('afterMessageBodyTransformed', this.model, text, {'Synchronous': true});
+
+        return this.list;
+    }
+
+    async render () {
+        return html`${await this.transform()}`
+    }
+
+    get length () {
+        return this.text.length;
+    }
+
+    toString () {
+        return "" + this.text;
+    }
+
+    textOf () {
+        return this.toString();
+    }
+}
+
+
 const tpl_mention_with_nick = (o) => html`<span class="mention mention--self badge badge-info">${o.mention}</span>`;
-const tpl_mention = (o) => html`<span class="mention">${mention}</span>`;
+const tpl_mention = (o) => html`<span class="mention">${o.mention}</span>`;
 
 
 function addMentionsMarkup (text, references, chatbox) {
@@ -86,49 +150,14 @@ function addMentionsMarkup (text, references, chatbox) {
             text = text.slice(0, ref.begin);
         });
     return list;
-};
+}
 
 
 export const renderBodyText = directive(component => async part => {
     const model = component.model;
     const _converse = component._converse;
-
-    let text = model.getMessageText();
-    /**
-     * Synchronous event which provides a hook for transforming a chat message's body text
-     * before the default transformations have been applied.
-     * @event _converse#beforeMessageBodyTransformed
-     * @param { _converse.Message } model - The model representing the message
-     * @param { string } text - The message text
-     * @example _converse.api.listen.on('beforeMessageBodyTransformed', (view, text) => { ... });
-     */
-    await _converse.api.trigger('beforeMessageBodyTransformed', model, text, {'Synchronous': true});
-
-    text = xss.filterXSS(text, {'whiteList': {}, 'onTag': onTagFoundDuringXSSFilter});
-    text = u.isMeCommand(text) ? text.substring(4) : text;
-    text = u.geoUriToHttp(text, _converse.geouri_replacement);
-
-    function process (text) {
-        // FIXME: need to handle img emojis
-        text = u.addEmoji(text);
-        return u.addMentionsMarkup(text, model.get('references'), model.collection.chatbox);
-    }
-
-    const list = await Promise.all(await u.addHyperlinks(text)
-        .then(list => list.reduce((acc, i) => isString(i) ? [...acc, ...process(i)] : [...acc, i]), [])
-    );
-
-    /**
-     * Synchronous event which provides a hook for transforming a chat message's body text
-     * after the default transformations have been applied.
-     * @event _converse#afterMessageBodyTransformed
-     * @param { _converse.Message } model - The model representing the message
-     * @param { string } text - The message text
-     * @example _converse.api.listen.on('afterMessageBodyTransformed', (view, text) => { ... });
-     */
-    await _converse.api.trigger('afterMessageBodyTransformed', model, text, {'Synchronous': true});
-
-    part.setValue(html`${list}`);
+    const renderer = new MessageBodyRenderer(_converse, component.model);
+    part.setValue(await renderer.render());
     part.commit();
     model.collection && model.collection.trigger('rendered', model);
     component.registerClickHandlers();
