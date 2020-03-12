@@ -771,7 +771,6 @@
 
             await u.waitUntil(() => _converse.rosterview.el.querySelectorAll('.roster-group').length);
             await test_utils.openChatBoxFor(_converse, contact_jid);
-            await test_utils.clearChatBoxMessages(_converse, contact_jid);
             const one_day_ago = dayjs().subtract(1, 'day');
             const chatbox = _converse.chatboxes.get(contact_jid);
             const view = _converse.chatboxviews.get(contact_jid);
