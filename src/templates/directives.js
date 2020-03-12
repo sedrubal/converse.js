@@ -1,44 +1,8 @@
 import { directive, html } from "lit-html";
 import { __ } from '@converse/headless/i18n';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
-import { isString } from "lodash";
-import converse from  "@converse/headless/converse-core";
 import tpl_avatar from "templates/avatar.svg";
 import URI from "urijs";
-import xss from "xss/dist/xss";
-
-
-const u = converse.env.utils;
-
-
-function onTagFoundDuringXSSFilter (tag, html, options) {
-    /* This function gets called by the XSS library whenever it finds
-     * what it thinks is a new HTML tag.
-     *
-     * It thinks that something like <https://example.com> is an HTML
-     * tag and then escapes the <> chars.
-     *
-     * We want to avoid this, because it prevents these URLs from being
-     * shown properly (whithout the trailing &gt;).
-     *
-     * The URI lib correctly trims a trailing >, but not a trailing &gt;
-     */
-    if (options.isClosing) {
-        // Closing tags don't match our use-case
-        return;
-    }
-    const uri = new URI(tag);
-    const protocol = uri.protocol().toLowerCase();
-    if (!["https", "http", "xmpp", "ftp"].includes(protocol)) {
-        // Not a URL, the tag will get filtered as usual
-        return;
-    }
-    if (uri.equals(tag) && `<${tag}>` === html.toLocaleLowerCase()) {
-        // We have something like <https://example.com>, and don't want
-        // to filter it.
-        return html;
-    }
-}
 
 
 const i18n_retract_message = __('Retract this message');
