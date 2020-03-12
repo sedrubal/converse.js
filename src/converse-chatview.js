@@ -332,11 +332,11 @@ converse.plugins.add('converse-chatview', {
                 return this;
             },
 
-            renderChatContent (changed={}) {
+            renderChatContent () {
                 const result = tpl_chat_content({
                     '_converse': _converse,
                     'model': this.model,
-                    'changed': changed
+                    'nonce': u.getUniqueId()
                 });
                 render(result, this.content);
             },
