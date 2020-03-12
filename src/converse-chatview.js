@@ -326,7 +326,6 @@ converse.plugins.add('converse-chatview', {
                 render(result, this.el);
                 this.content = this.el.querySelector('.chat-content');
                 this.renderChatContent();
-                this.chat_content = this.el.querySelector('converse-chat-content').shadowRoot;
                 this.renderMessageForm();
                 this.renderHeading();
                 return this;
