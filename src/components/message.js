@@ -49,7 +49,7 @@ class Message extends LitElement {
             occupant_affiliation: { type: String },
             occupant_role: { type: String },
             oob_url: { type: String },
-            pretty_type: { type: String },
+            pretty_time: { type: String },
             received: { type: String },
             roles: { type: Array },
             sender: { type: String },
@@ -71,7 +71,7 @@ class Message extends LitElement {
                 ${ renderAvatar(this) }
                 <div class="chat-msg__content chat-msg__content--${this.sender} ${this.is_me_message ? 'chat-msg__content--action' : ''}">
                     <span class="chat-msg__heading">
-                        ${ (this.is_me_message) ? html`<time timestamp="${this.isodate}" class="chat-msg__time">${this.pretty_time}</time>` : '' }
+                        ${ (this.is_me_message) ? html`<time timestamp="${this.time}" class="chat-msg__time">${this.pretty_time}</time>` : '' }
                         <span class="chat-msg__author">${ this.is_me_message ? '**' : ''}${this.username}</span>
                         ${ !this.is_me_message ? this.renderAvatarByline() : '' }
                         ${ this.is_encrypted ? html`<span class="fa fa-lock"></span>` : '' }
@@ -117,7 +117,7 @@ class Message extends LitElement {
         if (prev_model === null) {
             return false;
         }
-        const date = dayjs(this.isodate);
+        const date = dayjs(this.time);
         return this.from === prev_model.get('from') &&
             !this.is_me_message &&
             !u.isMeCommand(prev_model.getMessageText()) &&
@@ -186,7 +186,7 @@ class Message extends LitElement {
     renderAvatarByline () {
         return html`
             ${ this.roles.map(role => html`<span class="badge badge-secondary">${role}</span>`) }
-            <time timestamp="${this.isodate}" class="chat-msg__time">${this.pretty_time}</time>
+            <time timestamp="${this.time}" class="chat-msg__time">${this.pretty_time}</time>
         `;
     }
 
