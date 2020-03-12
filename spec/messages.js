@@ -788,13 +788,18 @@
             await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
             expect(_converse.api.trigger).toHaveBeenCalledWith('message', jasmine.any(Object));
-            expect(chatbox.messages.length).toEqual(1);
+            expect(chatbox.messages.length).toEqual(2);
+
             let msg_obj = chatbox.messages.models[0];
+            expect(msg_obj.get('type')).toEqual('date');
+
+            msg_obj = chatbox.messages.models[1];
             expect(msg_obj.get('message')).toEqual(message);
             expect(msg_obj.get('fullname')).toBeUndefined();
             expect(msg_obj.get('nickname')).toBe(null);
             expect(msg_obj.get('sender')).toEqual('them');
             expect(msg_obj.get('is_delayed')).toEqual(true);
+
             await u.waitUntil(() => chatbox.vcard.get('fullname') === 'Juliet Capulet')
             const chat_content = view.el.querySelector('.chat-content');
             expect(chat_content.querySelector('.chat-msg .chat-msg__text').textContent).toEqual(message);
@@ -834,18 +839,16 @@
             expect(time.textContent).toEqual(dayjs(message_date).startOf('day').format("dddd MMM Do YYYY"));
 
             // Normal checks for the 2nd message
-            expect(chatbox.messages.length).toEqual(2);
-            msg_obj = chatbox.messages.models[1];
+            expect(chatbox.messages.length).toEqual(4);
+            msg_obj = chatbox.messages.models[3];
             expect(msg_obj.get('message')).toEqual(message);
             expect(msg_obj.get('fullname')).toBeUndefined();
             expect(msg_obj.get('sender')).toEqual('them');
             expect(msg_obj.get('is_delayed')).toEqual(false);
-            const msg_txt = sizzle('.chat-msg:last .chat-msg__text', chat_content).pop().textContent;
-            expect(msg_txt).toEqual(message);
 
-            expect(chat_content.querySelector('.chat-msg:last-child .chat-msg__text').textContent).toEqual(message);
-            expect(chat_content.querySelector('.chat-msg:last-child .chat-msg__time').textContent.match(/^[0-9][0-9]:[0-9][0-9]/)).toBeTruthy();
-            expect(chat_content.querySelector('.chat-msg:last-child .chat-msg__author').textContent.trim()).toBe('Juliet Capulet');
+            expect(sizzle('.chat-msg:last .chat-msg__text', chat_content).pop().textContent).toEqual(message);
+            expect(sizzle('.chat-msg:last .chat-msg__time', chat_content).pop().textContent.match(/^[0-9][0-9]:[0-9][0-9]/)).toBeTruthy();
+            expect(sizzle('.chat-msg:last .chat-msg__author', chat_content).pop().textContent).toEqual('Juliet Capulet');
             done();
         }));
 

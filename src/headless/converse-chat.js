@@ -410,40 +410,38 @@ converse.plugins.add('converse-chat', {
             },
 
             /**
-             * Inserts an indicator into the chat area, showing the
-             * day as given by the passed in date.
-             * The indicator is only inserted if necessary.
+             * If necessary, creates a special message to indicate a new day.
              * @private
              * @method _converse.ChatBoxView#createDayIndicator
-             * @param { HTMLElement } next_msg_el - The message element before
-             *      which the day indicator element must be inserted.
-             *      This element must have a "data-isodate" attribute
-             *      which specifies its creation date.
+             * @param { _converse.Message } message - The message before
+             *      which the new day indicator must be inserted.
              */
-            createDayIndicator (next_msg) {
-                if (next_msg.get('type') === 'date') {
+            async createDayIndicator (new_msg) {
+                if (new_msg.get('type') === 'date') {
                     return;
                 }
-                const next_msg_date = next_msg.get('time');
-                const day_date = dayjs(next_msg_date).startOf('day');
-                const messages = this.messages.models;
-                const idx = messages.indexOf(next_msg);
-                const prev_msg = messages[idx-1];
+                const new_msg_date = new_msg.get('time');
+                const day_date = dayjs(new_msg_date).startOf('day');
+                const prev_msg = this.messages.models[this.messages.indexOf(new_msg)-1];
                 if (!prev_msg) {
-                    return this.messages.create({
+                    const msg = await this.messages.create({
                         'type': 'date',
                         'time': day_date.toISOString(),
-                    });
+                        'datestring': day_date.format("dddd MMM Do YYYY")
+                    }, {'wait': true, 'promise':true});
+                    return msg;
                 }
                 const prev_msg_date = prev_msg ? prev_msg.get('time') : null;
-                if (prev_msg_date === null && next_msg_date === null) {
+                if (prev_msg_date === null && new_msg_date === null) {
                     return;
                 }
-                if ((prev_msg_date === null) || dayjs(next_msg_date).isAfter(prev_msg_date, 'day')) {
-                    this.messages.create({
+                if ((prev_msg_date === null) || dayjs(new_msg_date).isAfter(prev_msg_date, 'day')) {
+                    const msg = await this.messages.create({
                         'type': 'date',
                         'time': day_date.toISOString(),
-                    });
+                        'datestring': day_date.format("dddd MMM Do YYYY")
+                    }, {'wait': true, 'promise':true});
+                    return msg;
                 }
             },
 
@@ -976,12 +974,20 @@ converse.plugins.add('converse-chat', {
                 }
             },
 
-            createMessage (attrs, options) {
-                return this.messages.create(attrs, Object.assign({'wait': true, 'promise':true}, options));
+            /**
+             * @async
+             * @private
+             * @method _converse.ChatBox#createMessage
+             */
+            async createMessage (attrs, options) {
+                const message = await this.messages.create(attrs, Object.assign({'wait': true, 'promise':true}, options));
+                await this.createDayIndicator(message);
+                return message;
             },
 
             /**
              * Responsible for sending off a text message inside an ongoing chat conversation.
+             * @private
              * @method _converse.ChatBox#sendMessage
              * @memberOf _converse.ChatBox
              * @param { String } text - The chat message text
