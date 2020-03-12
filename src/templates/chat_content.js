@@ -4,5 +4,5 @@ import { html } from "lit-html";
 
 export default (o) => html`<converse-chat-content
     ._converse=${o._converse}
-    .changed=${o.changed}
+    .nonce=${o.nonce}
     .model=${o.model}></converse-chat-content>`;

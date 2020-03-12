@@ -104,6 +104,7 @@
                 keyCode: 13 // Enter
             });
             expect(_converse.connection.send).toHaveBeenCalled();
+
             await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
             const msg = _converse.connection.send.calls.all()[0].args[0];

@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit-element';
+import { LitElement, html } from 'lit-element';
 import { __ } from '@converse/headless/i18n';
 import { repeat } from 'lit-html/directives/repeat.js';
 import converse from "@converse/headless/converse-core";
@@ -144,14 +144,13 @@ function renderMessage (_converse, model) {
 }
 
 
-
 class ChatContent extends LitElement {
 
     static get properties () {
         return {
             _converse: { type: Object },
             model: { type: Object },
-            changed: { type: Object }
+            nonce: { type: String }
         }
     }
 
