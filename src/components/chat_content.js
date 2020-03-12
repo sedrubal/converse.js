@@ -62,12 +62,7 @@ function renderChatMessage (_converse, model) {
 }
 
 function renderDayIndicator (model) {
-    const day_date = dayjs(model.get('isodate'));
-    return tpl_new_day(Object.assign(
-        model.toJSON(), {
-            'datestring': day_date.format("dddd MMM Do YYYY")
-        })
-    );
+    return tpl_new_day(model.toJSON())
 }
 
 function renderInfoMessage (model) {
