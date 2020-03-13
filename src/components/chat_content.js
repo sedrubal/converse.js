@@ -61,14 +61,17 @@ function renderChatMessage (_converse, model) {
     `;
 }
 
-function renderDayIndicator (model) {
-    return tpl_new_day(model.toJSON())
+function renderDayIndicator (attrs) {
+    return tpl_new_day(attrs);
 }
 
 function renderInfoMessage (model) {
     return tpl_info(Object.assign(model.toJSON(), {
         'extra_classes': 'chat-info',
-        'onRetryClicked': () => model.error.retry().then(() => model.destroy()),
+        'onRetryClicked': () => {
+            model.error.retry();
+            model.destroy();
+        },
         'isodate': dayjs(model.get('time')).toISOString()
     }));
 }
@@ -76,7 +79,10 @@ function renderInfoMessage (model) {
 function renderErrorMessage (model) {
     return tpl_info(Object.assign(model.toJSON(), {
         'extra_classes': 'chat-error',
-        'onRetryClicked': () => model.error.retry().then(() => model.destroy()),
+        'onRetryClicked': () => {
+            model.error.retry();
+            model.destroy();
+        },
         'isodate': dayjs(model.get('time')).toISOString()
     }));
 }
@@ -119,22 +125,38 @@ function renderFileUploadProgresBar (model) {
 }
 
 
+// Return a TemplateResult indicating a new day if the passed in message is
+// more than a day later than its predecessor.
+function getDayIndicator (model) {
+    const models = model.collection.models;
+    const idx = models.indexOf(model);
+    const prev_model =  models[idx-1];
+    if (!prev_model || dayjs(model.get('time')).isAfter(dayjs(prev_model.get('time')), 'day')) {
+        const day_date =dayjs(model.get('time')).startOf('day');
+        return renderDayIndicator({
+            'type': 'date',
+            'time': day_date.toISOString(),
+            'datestring': day_date.format("dddd MMM Do YYYY")
+        });
+    }
+}
+
+
 function renderMessage (_converse, model) {
+    const day = getDayIndicator(model);
+    const templates = day ? [day] : [];
     if (model.get('dangling_retraction')) {
         return;
-    }
-    if (model.isOnlyChatStateNotification(model)) {
-        return renderChatStateNotification(_converse, model)
+    } else if (model.isOnlyChatStateNotification(model)) {
+        return [...templates, renderChatStateNotification(_converse, model)];
     } else if (model.get('file') && !model.get('oob_url')) {
-        return renderFileUploadProgresBar(model);
+        return [...templates, renderFileUploadProgresBar(model)];
     } else if (model.get('type') === 'error') {
-        return renderErrorMessage(model);
+        return [...templates, renderErrorMessage(model)];
     } else if (model.get('type') === 'info') {
-        return renderInfoMessage(model);
-    } else if (model.get('type') === 'date') {
-        return renderDayIndicator(model);
+        return [...templates, renderInfoMessage(model)];
     } else {
-        return renderChatMessage(_converse, model);
+        return [...templates, renderChatMessage(_converse, model)];
     }
 }
 
