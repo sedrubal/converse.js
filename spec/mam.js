@@ -1035,12 +1035,13 @@
                     `</iq>`);
 
                 const view = _converse.chatboxviews.get(contact_jid);
-                expect(view.model.messages.length).toBe(1);
-                expect(view.model.messages.at(0).get('is_ephemeral')).toBe(false);
-                expect(view.model.messages.at(0).get('type')).toBe('error');
-                expect(view.model.messages.at(0).get('message')).toBe('Timeout while trying to fetch archived messages.');
+                expect(view.model.messages.length).toBe(2);
+                expect(view.model.messages.at(0).get('type')).toBe('date');
+                expect(view.model.messages.at(1).get('is_ephemeral')).toBe(false);
+                expect(view.model.messages.at(1).get('type')).toBe('error');
+                expect(view.model.messages.at(1).get('message')).toBe('Timeout while trying to fetch archived messages.');
 
-                let err_message = view.el.querySelector('.message.chat-error');
+                let err_message = await u.waitUntil(() => view.el.querySelector('.message.chat-error'));
                 err_message.querySelector('.retry').click();
                 expect(err_message.querySelector('.spinner')).not.toBe(null);
 
