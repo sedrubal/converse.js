@@ -92,9 +92,8 @@
 
             expect(textarea.value).toBe('But soft, what light through yonder airlock breaks?');
 
-            expect(view.model.messages.at(0).get('type')).toBe('date');
-            expect(view.model.messages.at(1).get('type')).toBe('chat');
-            expect(view.model.messages.at(1).get('correcting')).toBe(true);
+            expect(view.model.messages.at(0).get('type')).toBe('chat');
+            expect(view.model.messages.at(0).get('correcting')).toBe(true);
             expect(view.el.querySelectorAll('.chat-msg').length).toBe(1);
             await new Promise(resolve => view.model.messages.once('rendered', resolve));
             await u.waitUntil(() => u.hasClass('correcting', view.el.querySelector('.chat-msg')));
@@ -121,8 +120,8 @@
                         `<replace id="${first_msg.get("msgid")}" xmlns="urn:xmpp:message-correct:0"/>`+
                         `<origin-id id="${msg.nodeTree.querySelector('origin-id').getAttribute("id")}" xmlns="urn:xmpp:sid:0"/>`+
                 `</message>`);
-            expect(view.model.messages.models.length).toBe(2);
-            const corrected_message = view.model.messages.at(1);
+            expect(view.model.messages.models.length).toBe(1);
+            const corrected_message = view.model.messages.at(0);
             expect(corrected_message.get('msgid')).toBe(first_msg.get('msgid'));
             expect(corrected_message.get('correcting')).toBe(false);
 
@@ -141,7 +140,7 @@
             await new Promise(resolve => view.model.messages.once('rendered', resolve));
 
             expect(textarea.value).toBe('But soft, what light through yonder window breaks?');
-            expect(view.model.messages.at(1).get('correcting')).toBe(true);
+            expect(view.model.messages.at(0).get('correcting')).toBe(true);
             expect(view.el.querySelectorAll('.chat-msg').length).toBe(1);
             await u.waitUntil(() => u.hasClass('correcting', view.el.querySelector('.chat-msg')) === true);
 
@@ -149,7 +148,7 @@
             action.style.opacity = 1;
             action.click();
             expect(textarea.value).toBe('');
-            expect(view.model.messages.at(1).get('correcting')).toBe(false);
+            expect(view.model.messages.at(0).get('correcting')).toBe(false);
             expect(view.el.querySelectorAll('.chat-msg').length).toBe(1);
             await u.waitUntil(() => (u.hasClass('correcting', view.el.querySelector('.chat-msg')) === false), 500);
 
@@ -174,12 +173,12 @@
             action.click();
             expect(window.confirm).toHaveBeenCalledWith(
                 'You have an unsent message which will be lost if you continue. Are you sure?');
-            expect(view.model.messages.at(1).get('correcting')).toBe(true);
+            expect(view.model.messages.at(0).get('correcting')).toBe(true);
             expect(textarea.value).toBe('But soft, what light through yonder window breaks?');
 
             textarea.value = 'But soft, what light through yonder airlock breaks?'
             action.click();
-            expect(view.model.messages.at(1).get('correcting')).toBe(false);
+            expect(view.model.messages.at(0).get('correcting')).toBe(false);
             expect(window.confirm.calls.count()).toBe(2);
             expect(window.confirm.calls.argsFor(0)).toEqual(
                 ['You have an unsent message which will be lost if you continue. Are you sure?']);

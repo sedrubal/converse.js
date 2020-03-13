@@ -266,7 +266,6 @@ converse.plugins.add('converse-chatview', {
                 this.debouncedMsgsRender = debounce(changed => this.renderChatContent(changed), 25);
                 this.listenTo(this.model.messages, 'add', this.onMessageAdded);
                 this.listenTo(this.model.messages, 'change', this.debouncedMsgsRender);
-                this.listenTo(this.model.messages, 'change:edited', this.onMessageEdited);
                 this.listenTo(this.model.messages, 'destroy', this.debouncedMsgsRender);
                 this.listenTo(this.model.messages, 'rendered', this.scrollDown);
                 this.listenTo(this.model.messages, 'vcard:change', this.debouncedMsgsRender);
@@ -751,16 +750,6 @@ converse.plugins.add('converse-chatview', {
                 });
             },
 
-            /**
-             * Handler that gets called when a message object has been edited via LMC.
-             * @private
-             * @method _converse.ChatBoxView#onMessageEdited
-             * @param { object } message - The updated message object.
-             */
-            onMessageEdited (message) {
-                this.clearChatStateForSender(message.get('from'));
-            },
-
             parseMessageForCommands (text) {
                 const match = text.replace(/^\s*/, "").match(/^\/(.*)\s*$/);
                 if (match) {
@@ -1051,16 +1040,6 @@ converse.plugins.add('converse-chatview', {
                     await this.model.clearMessages();
                 }
                 return this;
-            },
-
-            /**
-             * Remove chat state notifications for a given sender JID.
-             * @private
-             * @method _converse.ChatBoxView#clearChatStateForSender
-             * @param {string} sender - The sender of the chat state
-             */
-            clearChatStateForSender (sender) {
-                sizzle(`.chat-state-notification[data-csn="${sender}"]`, this.content).forEach(u.removeElement);
             },
 
             /**
