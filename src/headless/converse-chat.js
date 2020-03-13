@@ -7,7 +7,6 @@ import { find, get, isMatch, isObject, isString, pick } from "lodash";
 import { Collection } from "skeletor.js/src/collection";
 import { Model } from 'skeletor.js/src/model.js';
 import converse from "./converse-core";
-import dayjs from 'dayjs';
 import filesize from "filesize";
 import log from "./log";
 import stanza_utils from "./utils/stanza";
@@ -406,42 +405,6 @@ converse.plugins.add('converse-chat', {
                         const msg = this.handleCorrection(attrs) || await this.createMessage(attrs);
                         this.incrementUnreadMsgCounter(msg);
                     }
-                }
-            },
-
-            /**
-             * If necessary, creates a special message to indicate a new day.
-             * @private
-             * @method _converse.ChatBoxView#createDayIndicator
-             * @param { _converse.Message } message - The message before
-             *      which the new day indicator must be inserted.
-             */
-            async createDayIndicator (new_msg) {
-                if (new_msg.get('type') === 'date') {
-                    return;
-                }
-                const new_msg_date = new_msg.get('time');
-                const day_date = dayjs(new_msg_date).startOf('day');
-                const prev_msg = this.messages.models[this.messages.indexOf(new_msg)-1];
-                if (!prev_msg) {
-                    const msg = await this.messages.create({
-                        'type': 'date',
-                        'time': day_date.toISOString(),
-                        'datestring': day_date.format("dddd MMM Do YYYY")
-                    }, {'wait': true, 'promise':true});
-                    return msg;
-                }
-                const prev_msg_date = prev_msg ? prev_msg.get('time') : null;
-                if (prev_msg_date === null && new_msg_date === null) {
-                    return;
-                }
-                if ((prev_msg_date === null) || dayjs(new_msg_date).isAfter(prev_msg_date, 'day')) {
-                    const msg = await this.messages.create({
-                        'type': 'date',
-                        'time': day_date.toISOString(),
-                        'datestring': day_date.format("dddd MMM Do YYYY")
-                    }, {'wait': true, 'promise':true});
-                    return msg;
                 }
             },
 
@@ -979,10 +942,8 @@ converse.plugins.add('converse-chat', {
              * @private
              * @method _converse.ChatBox#createMessage
              */
-            async createMessage (attrs, options) {
-                const message = await this.messages.create(attrs, Object.assign({'wait': true, 'promise':true}, options));
-                await this.createDayIndicator(message);
-                return message;
+            createMessage (attrs, options) {
+                return this.messages.create(attrs, Object.assign({'wait': true, 'promise':true}, options));
             },
 
             /**
