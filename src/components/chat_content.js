@@ -68,7 +68,7 @@ function renderDayIndicator (model) {
 function renderInfoMessage (model) {
     return tpl_info(Object.assign(model.toJSON(), {
         'extra_classes': 'chat-info',
-        'onRetryClicked': () => model.error.retry(),
+        'onRetryClicked': () => model.error.retry().then(() => model.destroy()),
         'isodate': dayjs(model.get('time')).toISOString()
     }));
 }
@@ -76,7 +76,7 @@ function renderInfoMessage (model) {
 function renderErrorMessage (model) {
     return tpl_info(Object.assign(model.toJSON(), {
         'extra_classes': 'chat-error',
-        'onRetryClicked': () => model.error.retry(),
+        'onRetryClicked': () => model.error.retry().then(() => model.destroy()),
         'isodate': dayjs(model.get('time')).toISOString()
     }));
 }
