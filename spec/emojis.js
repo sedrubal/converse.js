@@ -185,7 +185,8 @@
                     }).c('body').t('😇 Hello world! 😇 😇').up()
                     .c('active', {'xmlns': 'http://jabber.org/protocol/chatstates'}).tree());
                 await new Promise(resolve => view.model.messages.once('rendered', resolve));
-                message = chat_content.querySelector('.message:last-child .chat-msg__text');
+
+                message = sizzle('.message:last .chat-msg__text', chat_content);
                 expect(u.hasClass('chat-msg__text--larger', message)).toBe(false);
 
                 // Test that a modified message that no longer contains only
@@ -198,16 +199,18 @@
                     keyCode: 13 // Enter
                 });
                 await new Promise(resolve => view.model.messages.once('rendered', resolve));
+
                 expect(view.el.querySelectorAll('.chat-msg').length).toBe(3);
-                expect(chat_content.querySelector('.message:last-child .chat-msg__text').textContent).toBe('💩 😇');
+                expect(sizzle('.message:last .chat-msg__text', chat_content).pop().textContent).toBe('💩 😇');
                 expect(textarea.value).toBe('');
                 view.onKeyDown({
                     target: textarea,
                     keyCode: 38 // Up arrow
                 });
                 expect(textarea.value).toBe('💩 😇');
-                expect(view.model.messages.at(2).get('correcting')).toBe(true);
-                await u.waitUntil(() => u.hasClass('correcting', view.el.querySelector('.chat-msg:last-child')), 500);
+                expect(view.model.messages.at(0).get('type')).toBe('date');
+                expect(view.model.messages.at(3).get('correcting')).toBe(true);
+                await u.waitUntil(() => u.hasClass('correcting', sizzle('.chat-msg:last', view.el).pop()), 500);
                 textarea.value = textarea.value += 'This is no longer an emoji-only message';
                 view.onKeyDown({
                     target: textarea,
@@ -215,9 +218,8 @@
                     keyCode: 13 // Enter
                 });
                 await new Promise(resolve => view.model.messages.once('rendered', resolve));
-                expect(view.model.messages.models.length).toBe(3);
-                message = chat_content.querySelector('.message:last-child .chat-msg__text');
-                expect(u.hasClass('chat-msg__text--larger', message)).toBe(false);
+                expect(view.model.messages.models.length).toBe(4);
+                expect(u.hasClass('chat-msg__text--larger', sizzle('.message:last .chat-msg__text', message).pop())).toBe(false);
 
                 textarea.value = ':smile: Hello world!';
                 view.onKeyDown({
