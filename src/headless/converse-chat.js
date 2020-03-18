@@ -150,12 +150,8 @@ converse.plugins.add('converse-chat', {
                 }
             },
 
-            isOnlyChatStateNotification () {
-                return u.isOnlyChatStateNotification(this);
-            },
-
             isEphemeral () {
-                return this.get('is_ephemeral') || u.isOnlyChatStateNotification(this);
+                return this.get('is_ephemeral');
             },
 
             getDisplayName () {
@@ -339,6 +335,7 @@ converse.plugins.add('converse-chat', {
             },
 
             initMessages () {
+                // Chat messages
                 this.messages = new this.messagesCollection();
                 this.messages.chatbox = this;
                 this.messages.browserStorage = _converse.createStore(this.getMessagesCacheKey());
@@ -375,6 +372,10 @@ converse.plugins.add('converse-chat', {
                 return this.messages.fetched;
             },
 
+            updateCSN (attrs) {
+                this.save('csn', 'blah blah');
+            },
+
             /**
              * Queue an incoming `chat` message stanza for processing.
              * @async
@@ -401,7 +402,10 @@ converse.plugins.add('converse-chat', {
                         return;
                     }
                     this.setEditable(attrs, attrs.time, stanza);
-                    if (u.shouldCreateMessage(attrs)) {
+
+                    if (attrs['chat_state']) {
+                        this.updateCSN(attrs);
+                    } else if (u.shouldCreateMessage(attrs)) {
                         const msg = this.handleCorrection(attrs) || await this.createMessage(attrs);
                         this.incrementUnreadMsgCounter(msg);
                     }

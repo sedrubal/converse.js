@@ -4,7 +4,6 @@ import { repeat } from 'lit-html/directives/repeat.js';
 import converse from "@converse/headless/converse-core";
 import dayjs from 'dayjs';
 import filesize from "filesize";
-import tpl_csn from "../templates/csn.js";
 import tpl_file_progress from "../templates/file_progress.js";
 import tpl_info from "../templates/info.js";
 import tpl_new_day from "../templates//new_day.js";
@@ -87,35 +86,6 @@ function renderErrorMessage (model) {
     }));
 }
 
-function renderChatStateNotification (_converse, model) {
-    let text;
-    const from = model.get('from');
-    const name = model.getDisplayName();
-
-    if (model.get('chat_state') === _converse.COMPOSING) {
-        if (model.get('sender') === 'me') {
-            text = __('Typing from another device');
-        } else {
-            text = __('%1$s is typing', name);
-        }
-    } else if (model.get('chat_state') === _converse.PAUSED) {
-        if (model.get('sender') === 'me') {
-            text = __('Stopped typing on the other device');
-        } else {
-            text = __('%1$s has stopped typing', name);
-        }
-    } else if (model.get('chat_state') === _converse.GONE) {
-        text = __('%1$s has gone away', name);
-    } else {
-        return html``;
-    }
-    return tpl_csn({
-        'message': text,
-        'from': from,
-        'isodate': (new Date()).toISOString()
-    });
-}
-
 function renderFileUploadProgresBar (model) {
     return tpl_file_progress(
         Object.assign(model.toJSON(), {
@@ -147,8 +117,6 @@ function renderMessage (_converse, model) {
     const templates = day ? [day] : [];
     if (model.get('dangling_retraction')) {
         return;
-    } else if (model.isOnlyChatStateNotification(model)) {
-        return [...templates, renderChatStateNotification(_converse, model)];
     } else if (model.get('file') && !model.get('oob_url')) {
         return [...templates, renderFileUploadProgresBar(model)];
     } else if (model.get('type') === 'error') {

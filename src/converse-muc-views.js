@@ -716,6 +716,27 @@ converse.plugins.add('converse-muc-views', {
                 }
             },
 
+            renderChatStateNotifications () {
+                const actors_per_state = this.model.csn.toJSON();
+                const message = converse.CHAT_STATES.reduce((result, state) => {
+                    const actors = actors_per_state[state].join(', ');
+                    if (!actors) {
+                        return result;
+                    }
+
+                    if (state === 'composing') {
+                        return `${result} ${__('%1$s is typing.', actors)}`;
+                    } else if (state === 'paused') {
+                        return `${result} ${__('%1$s has stopped typing.', actors)}`;
+                    } else if (state === _converse.GONE) {
+                        return `${result} ${__('%1$s has gone away.', actors)}`;
+                    } else {
+                        return result;
+                    }
+                }, '');
+                this.csn.innerHTML = message;
+            },
+
             createSidebarView () {
                 this.model.occupants.chatroomview = this;
                 this.sidebar_view = new _converse.MUCSidebar({'model': this.model.occupants});

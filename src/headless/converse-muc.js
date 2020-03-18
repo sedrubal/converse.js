@@ -353,6 +353,7 @@ converse.plugins.add('converse-muc', {
                 this.initialized = u.getResolveablePromise();
                 this.debouncedRejoin = debounce(this.rejoin, 250);
                 this.set('box_id', `box-${btoa(this.get('jid'))}`);
+                await this.initCSN();
                 this.initMessages();
                 this.initOccupants();
                 this.initDiscoModels(); // sendChatState depends on this.features
@@ -374,6 +375,14 @@ converse.plugins.add('converse-muc', {
                  */
                 await _converse.api.trigger('chatRoomInitialized', this, {'Synchronous': true});
                 this.initialized.resolve();
+            },
+
+            initCSN () {
+                // Chat state notifications
+                const id = `converse.csn-${this.get('jid')}-${_converse.bare_jid}`;
+                this.csn = new Model({id, 'active': [], 'composing': [], 'gone': [], 'inactive': [], 'paused': [] });
+                this.csn.browserStorage = _converse.createStore(id, "session");
+                return this.csn.fetch({'promise': true})
             },
 
             /**
@@ -1818,6 +1827,18 @@ converse.plugins.add('converse-muc', {
                 }
             },
 
+            updateCSN (attrs) {
+                const actor = attrs.from;
+                const state = attrs.chat_state;
+                const actors_per_state = this.csn.toJSON();
+                if (actors_per_state[state].includes(actor)) {
+                    return;
+                }
+                converse.CHAT_STATES.forEach(k => actors_per_state[k].filter(a => a !== actor));
+                actors_per_state[state] =  [...actors_per_state[state], actor];
+                this.csn.save(actors_per_state);
+            },
+
             /**
              * Handler for all MUC messages sent to this groupchat. This method
              * shouldn't be called directly, instead {@link _converse.ChatRoom#queueMessage}
@@ -1865,7 +1886,9 @@ converse.plugins.add('converse-muc', {
                 }
                 this.setEditable(attrs, attrs.time);
 
-                if (u.shouldCreateGroupchatMessage(attrs)) {
+                if (attrs['chat_state']) {
+                    this.updateCSN(attrs);
+                } else if (u.shouldCreateGroupchatMessage(attrs)) {
                     const msg = this.handleCorrection(attrs) || await this.createMessage(attrs);
                     this.incrementUnreadMsgCounter(msg);
                 }

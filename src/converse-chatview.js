@@ -275,6 +275,8 @@ converse.plugins.add('converse-chatview', {
                     this.debouncedMsgsRender();
                 });
 
+                this.listenTo(this.model.csn, 'change', this.renderChatStateNotifications);
+
                 this.listenTo(this.model, 'change:status', this.onStatusMessageChanged);
                 this.listenTo(this.model.presence, 'change:show', this.onPresenceChanged);
 
@@ -324,7 +326,9 @@ converse.plugins.add('converse-chatview', {
                 );
                 render(result, this.el);
                 this.content = this.el.querySelector('.chat-content');
+                this.csn = this.el.querySelector('.chat-state-notifications');
                 this.renderChatContent();
+                this.renderChatStateNotifications();
                 this.renderMessageForm();
                 this.renderHeading();
                 return this;
@@ -337,6 +341,27 @@ converse.plugins.add('converse-chatview', {
                     'nonce': u.getUniqueId()
                 });
                 render(result, this.content);
+            },
+
+            renderChatStateNotifications () {
+                const actors_per_state = this.model.csn.toJSON();
+                const message = converse.CHAT_STATES.reduce((result, state) => {
+                    const actors = actors_per_state[state].join(', ');
+                    if (!actors) {
+                        return result;
+                    }
+
+                    if (state === 'composing') {
+                        return `${result} ${__('%1$s is typing.', actors)}`;
+                    } else if (state === 'paused') {
+                        return `${result} ${__('%1$s has stopped typing.', actors)}`;
+                    } else if (state === _converse.GONE) {
+                        return `${result} ${__('%1$s has gone away.', actors)}`;
+                    } else {
+                        return result;
+                    }
+                }, '');
+                this.csn.innerHTML = message;
             },
 
             renderToolbar () {
@@ -723,7 +748,7 @@ converse.plugins.add('converse-chatview', {
                         // when the user writes a message as opposed to when a
                         // message is received.
                         this.model.set('scrolled', false);
-                    } else if (this.model.get('scrolled', true) && !u.isOnlyChatStateNotification(message)) {
+                    } else if (this.model.get('scrolled', true)) {
                         this.showNewMessagesIndicator();
                     }
                 }

@@ -1012,8 +1012,10 @@
                             .c('composing', {'xmlns': Strophe.NS.CHATSTATES}).up()
                             .tree();
                         await _converse.handleMessageStanza(msg);
-                        await u.waitUntil(() => view.model.messages.length);
-                        await u.waitUntil(() => view.el.querySelector('.chat-state-notification'));
+                        await u.waitUntil(() => (view.model.csn.get('composing').length == 1));
+
+                        debugger;
+
                         expect(view.el.querySelectorAll('.chat-state-notification').length).toBe(1);
                         msg = $msg({
                                 from: sender_jid,
@@ -1022,7 +1024,8 @@
                                 id: u.getUniqueId()
                             }).c('inactive', {'xmlns': Strophe.NS.CHATSTATES}).tree();
                         await _converse.handleMessageStanza(msg);
-                        await u.waitUntil(() => (view.model.messages.length > 1));
+                        await u.waitUntil(() => (view.model.csn.get('inactive').length == 1));
+                        expect(view.model.csn.get('composing').length).toBe(0);
                         expect(_converse.api.trigger).toHaveBeenCalledWith('message', jasmine.any(Object));
                         await u.waitUntil(() => view.el.querySelectorAll('.chat-state-notification').length === 0);
                         done();
