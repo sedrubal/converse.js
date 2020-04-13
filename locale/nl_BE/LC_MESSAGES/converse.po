@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: Converse.js 3.3.4\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-02-11 10:11+0100\n"
-"PO-Revision-Date: 2019-09-11 15:35+0200\n"
-"Last-Translator: Ezra Zebra <ezra.zebra@protonmail.com>\n"
+"PO-Revision-Date: 2020-04-13 10:12+0000\n"
+"Last-Translator: JC Brand <jc@opkode.com>\n"
 "Language-Team: Flemish <https://hosted.weblate.org/projects/conversejs/"
 "translations/nl_BE/>\n"
 "Language: nl_BE\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.9-dev\n"
+"X-Generator: Weblate 4.0-dev\n"
 
 #: dist/converse-no-dependencies.js:10630
 msgid "Uploading file:"
@@ -32,9 +32,8 @@ msgid "Edit this message"
 msgstr "Dit bericht bewerken"
 
 #: dist/converse-no-dependencies.js:10766
-#, fuzzy
 msgid "Retract this message"
-msgstr "Dit bericht bewerken"
+msgstr "Pas dit bericht aan"
 
 #: dist/converse-no-dependencies.js:10792
 #, fuzzy
