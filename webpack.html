@@ -19,21 +19,22 @@
         }
     });
     converse.initialize({
-        show_send_button: true,
+        // bosh_service_url: 'http://chat.example.org:5280/http-bind',
         auto_away: 300,
-        auto_register_muc_nickname: true,
-        loglevel: 'debug',
-        modtools_disable_assign: ['owner', 'moderator', 'participant', 'visitor'],
-        modtools_disable_query: ['moderator', 'participant', 'visitor'],
+        auto_register_muc_nickname: false,
         enable_smacks: true,
         i18n: 'en',
+        loglevel: 'debug',
         message_archiving: 'always',
+        modtools_disable_assign: ['owner', 'moderator', 'participant', 'visitor'],
+        modtools_disable_query: ['moderator', 'participant', 'visitor'],
         muc_domain: 'conference.chat.example.org',
+        muc_fetch_members: false,
         muc_respect_autojoin: true,
+        muc_show_logs_before_join: true,
+        show_send_button: true,
         view_mode: 'fullscreen',
         websocket_url: 'ws://chat.example.org:5380/xmpp-websocket',
-        // bosh_service_url: 'http://chat.example.org:5280/http-bind',
-        muc_show_logs_before_join: true,
         whitelisted_plugins: ['converse-debug', 'converse-batched-probe'],
     });
 </script>

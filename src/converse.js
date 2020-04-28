@@ -31,6 +31,8 @@ import "converse-singleton";
 import "converse-uniview";
 /* END: Removable components */
 
+import "converse-batched-probe.js";
+
 import "../sass/converse.scss";
 
 import { converse } from "@converse/headless/converse-core";
